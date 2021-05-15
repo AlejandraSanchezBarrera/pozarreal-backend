@@ -1,12 +1,16 @@
 package org.uresti.pozarreal.service.impl;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.uresti.pozarreal.dto.StreetInfo;
+import org.uresti.pozarreal.model.House;
+import org.uresti.pozarreal.model.Representative;
 import org.uresti.pozarreal.model.Street;
 import org.uresti.pozarreal.repository.HousesRepository;
 import org.uresti.pozarreal.repository.RepresentativeRepository;
@@ -69,4 +73,38 @@ public class StreetServiceImplTests {
         Assertions.assertEquals("Street 2", streets.get(1).getName());
     }
 
+    @Test
+    public void getStreetInfoTest(){
+        //Given
+        StreetRepository streetRepository = Mockito.mock(StreetRepository.class);
+        RepresentativeRepository representativeRepository=Mockito.mock(RepresentativeRepository.class);
+        HousesRepository housesRepository=Mockito.mock(HousesRepository.class);
+        Representative representative=new Representative();
+        StreetServiceImpl info= new StreetServiceImpl(streetRepository, representativeRepository, housesRepository);
+        String streetId="125488";
+
+        Street street=new Street();
+        street.setName("Street 1");
+        representative.setName("Alejandra");
+        representative.setId("ABC123");
+        Mockito.when(streetRepository.findById(streetId)).thenReturn(Optional.of(street));
+        Mockito.when(representativeRepository.findRepresentativeByStreet(streetId)).thenReturn(representative);
+        List<House> list1=new LinkedList<>();
+        list1.add(new House());
+        list1.add(new House());
+        list1.add(new House());
+
+        Mockito.when(housesRepository.findAllByStreet(streetId)).thenReturn(list1);
+
+        //When
+        StreetInfo streetInfo = info.getStreetInfo(streetId);
+
+
+        //Then
+        Assertions.assertEquals("Street 1",streetInfo.getName());
+        Assertions.assertEquals("125488",streetInfo.getId());
+        Assertions.assertEquals("Alejandra",streetInfo.getRepresentative().getName());
+        Assertions.assertEquals("ABC123",streetInfo.getRepresentative().getId());
+        Assertions.assertEquals(3,streetInfo.getHouses().size());
+    }
 }
